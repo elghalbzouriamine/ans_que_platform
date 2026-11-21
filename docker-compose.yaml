@@ -1,0 +1,42 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: qa-mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7
+    container_name: qa-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: qa-chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/data
+
+  neo4j:            # bonus, you can comment it out for now
+    image: neo4j:5
+    container_name: qa-neo4j
+    environment:
+      - NEO4J_AUTH=neo4j/password123
+    ports:
+      - "7474:7474"   # browser UI
+      - "7687:7687"   # bolt (used by Python)
+    volumes:
+      - neo4j_data:/data
+
+volumes:
+  mongo_data:
+  redis_data:
+  chroma_data:
+  neo4j_data:
