@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from questionCard import question_card
 from answerCard import answer_card
 import random
+from bson import ObjectId
 
 import redis_integration as rv   # add with the other imports
 
@@ -116,9 +117,26 @@ else:
         
     with tab_browse:
         st.header("Browse questions")
-        
+        search = st.text_input("🔍 Search questions by title", placeholder="Search...")
+        if st.button("Find"):
+            if search.strip():
+                c =get_chroma()
+                result=c.query(query_texts=[search],n_results=5)
+                question_id=result["ids"][0]
+                for qid in question_id:
+                    _id = int(qid) if qid.isdigit() else ObjectId(qid)
+                    question=questions.find_one({"_id":_id})
+                    if question:
+                        question_card(question, users, answers)
+            else:
+                st.warning("enter a a question!!!")
+               
         for question in st.session_state.browse_questions:
-            question_card(question, users, answers)
+                            question_card(question, users, answers)
+        
+
+        
+          
 
     with tab_profile:
         st.header("My Profile")

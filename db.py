@@ -3,6 +3,7 @@ import pymongo, redis, chromadb
 from pymongo import MongoClient
 import redis 
 import chromadb
+from neo4j import GraphDatabase
 @st.cache_resource
 
 
@@ -18,4 +19,17 @@ def get_redis():
 @st.cache_resource
 def get_chroma():
     client = chromadb.HttpClient(host="localhost", port=8000)
-    return client.get_or_create_collection("questions")
+    return client.get_or_create_collection("qa_questions", metadata={"hnsw:space": "cosine"},)
+
+
+uri="neo4j://localhost:7687"
+username="neo4j"
+password="password123"
+
+driver=GraphDatabase.driver(uri,auth=(username,password))
+def get_neo4j():
+    driver.verify_connectivity()
+
+
+
+
