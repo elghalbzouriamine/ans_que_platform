@@ -21,14 +21,16 @@ def get_chroma():
     client = chromadb.HttpClient(host="localhost", port=8000)
     return client.get_or_create_collection("qa_questions", metadata={"hnsw:space": "cosine"},)
 
+@st.cache_resource
 
-uri="neo4j://localhost:7687"
-username="neo4j"
-password="password123"
-
-driver=GraphDatabase.driver(uri,auth=(username,password))
 def get_neo4j():
+    uri="neo4j://localhost:7687"
+    username="neo4j"
+    password="password123"
+
+    driver=GraphDatabase.driver(uri,auth=(username,password))
     driver.verify_connectivity()
+    return driver
 
 
 

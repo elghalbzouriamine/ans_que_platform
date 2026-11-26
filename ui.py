@@ -6,6 +6,8 @@ from questionCard import question_card
 from answerCard import answer_card
 import random
 from bson import ObjectId
+from expertCard import expert_card
+from neo4j_integration import get_all_tags,experts_for_tag
 
 import redis_integration as rv   # add with the other imports
 
@@ -170,10 +172,38 @@ else:
                 
             
 
-    with tab_rank:
-        st.header("Leaderboard")
-        s=rv.leaderboard(10)
-        for i in range(len(s)):
-            username,score=s[i]
-            st.write(f"#{i+1}_{username} --- {int(score)} points")
+        with tab_rank:
+            st.header("Leaderboard")
 
+            st.subheader("available tags")
+            all_tags=get_all_tags()
+            if all_tags:
+                cols = st.columns(4)
+
+                for i, tag in enumerate(all_tags):
+                    with cols[i % 4]:
+                        with st.container(border=True):
+                            st.markdown(f"**#{tag}**")
+            else:
+                st.info("No tags available yet.")
+            search_tag = st.text_input("🔍 Search experts by tag", placeholder="python, redis...")
+
+
+            if st.button("Find experts"):
+                if search_tag.strip():
+                    experts = experts_for_tag(search_tag.strip().lower())
+                    if experts:
+                        st.subheader(f"Top experts in `{search_tag.strip().lower()}`")
+                        for rank, e in enumerate(experts, start=1):
+                            expert_card(rank, e)
+                    else:
+                        st.info("No experts found for this tag.")
+                else:
+                    st.warning("Enter a tag!")
+
+            st.divider()
+            st.subheader("Global leaderboard")
+            s = rv.leaderboard(10)
+            for i in range(len(s)):
+                username, score = s[i]
+                st.write(f"#{i+1}_{username} --- {int(score)} points")
