@@ -1,6 +1,8 @@
 import streamlit as st
 from datetime import datetime, timezone
 import redis_integration as rv
+from neo4j_integration import add_answer,add_user
+
 
 
 def answer_section(question, answers):
@@ -31,14 +33,20 @@ def answer_section(question, answers):
                     st.warning("Your answer cannot be empty.")
 
                 else:
-                    answers.insert_one({
+                    a={
                         "question_id": question["_id"],
                         "author_id": st.session_state.user_id,
                         "body": answer_text.strip(),
                         "created_at": datetime.now(timezone.utc),
                         "accepted": False,
                         "votes": 0,
-                    })
+                    }
+                    
+                    answers.insert_one(a)
+                    add_user({"_id":st.session_state.user_id,"username":st.session_state.username})
+                    add_answer(a)
+
+
 
                     st.success("Answer published!")
                     st.rerun()

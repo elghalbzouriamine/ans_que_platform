@@ -4,10 +4,11 @@ from db import get_mongo, get_redis, get_chroma
 from datetime import datetime, timezone
 from questionCard import question_card
 from answerCard import answer_card
+from index_all import index_chroma
 import random
 from bson import ObjectId
 from expertCard import expert_card
-from neo4j_integration import get_all_tags,experts_for_tag
+from neo4j_integration import get_all_tags,experts_for_tag,add_question,add_answer,add_user
 
 import redis_integration as rv   # add with the other imports
 
@@ -103,13 +104,17 @@ else:
 
         if st.button("Submit"):
             st.write("Question submitted!")
-            result = questions.insert_one({
+            q={
                                 "title":title,
                                 "body":content,
                                 "tags": [tag.strip() for tag in tags.split(",") if tag.strip()],
                                 "author_id":st.session_state.user_id,
                                 "created_at":datetime.now(timezone.utc),
-                            })
+                            }
+            result = questions.insert_one(q)
+            index_chroma(q)
+            add_user({"_id":st.session_state.user_id,"username":st.session_state.username})
+            add_question(q)
             st.session_state.browse_questions = list(
                 questions.find().sort("created_at", -1).limit(20)
             )

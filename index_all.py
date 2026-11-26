@@ -1,24 +1,13 @@
+
+
 import chromadb
 from pymongo import MongoClient
+from db import get_chroma,get_mongo,get_neo4j,get_redis
 
-mongo = MongoClient("mongodb://localhost:27018")
+dbm=get_mongo()["qa_platform"]
+dbc=get_chroma()
 
-questions = list(mongo["qa_platform"]["questions"].find())
+def index_chroma(question):
+    dbc.upsert(ids=[str(question["_id"])],documents=[question["title"]])
 
-batch_size = 5000
 
-client = chromadb.HttpClient(host="localhost", port=8000)
-collection = client.get_or_create_collection("qa_questions")
-
-for i in range(0, len(questions), batch_size):
-
-    batch = questions[i:i + batch_size]
-
-    collection.upsert(
-        ids=[str(q["_id"]) for q in batch],
-        documents=[q.get("title", "") for q in batch],
-    )
-
-    print(f"Indexed {min(i + batch_size, len(questions))}/{len(questions)}")
-
-print("Total indexed:", collection.count())
